@@ -1,0 +1,30 @@
+{
+  "name": "errorify",
+  "version": "0.0.1",
+  "description": "Browserify plugin to write failed build messages to the output file",
+  "keywords": [
+    "browserify"
+  ],
+  "homepage": "https://github.com/zertosh/errorify",
+  "licence": "MIT",
+  "author": "Andres Suarez <zertosh@gmail.com>",
+  "main": "errorify.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zertosh/errorify.git"
+  },
+  "scripts": {
+    "test": "tape test/**/*-test.js"
+  },
+  "dependencies": {
+    "through2": "^0.6.2"
+  },
+  "devDependencies": {
+    "browserify": "^5.12.0",
+    "concat-stream": "^1.4.6",
+    "tape": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=0.10"
+  }
+}
