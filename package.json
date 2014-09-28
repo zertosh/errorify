@@ -1,9 +1,11 @@
 {
   "name": "errorify",
   "version": "0.0.1",
-  "description": "Browserify plugin to write failed build messages to the output file",
+  "description": "Browserify plugin to write failed build error messages to the output file",
   "keywords": [
-    "browserify"
+    "build",
+    "browserify",
+    "browserify-plugin"
   ],
   "homepage": "https://github.com/zertosh/errorify",
   "licence": "MIT",
