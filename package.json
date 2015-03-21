@@ -10,6 +10,10 @@
   "homepage": "https://github.com/zertosh/errorify",
   "licence": "MIT",
   "author": "Andres Suarez <zertosh@gmail.com>",
+  "files": [
+    "README.md",
+    "errorify.js"
+  ],
   "main": "errorify.js",
   "repository": {
     "type": "git",
