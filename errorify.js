@@ -1,65 +1,27 @@
-// Browserify plugin to write failed build messages to the output file
-
 'use strict';
 
 var through = require('through2');
-var extend = require('util')._extend;
 
-function errorify(b, opts_) {
-  var opts = extend({}, opts_);
+// https://github.com/sindresorhus/ansi-regex/blob/47fb974/index.js
+var ansiRegex = /(?:(?:\u001b\[)|\u009b)(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])|\u001b[A-M]/g;
 
-  if (typeof opts.logger !== 'function') {
-    opts.logger = function(err) {
-      console.log('errorify: %s', err.toString());
-    };
-  }
-
-  // "writer" should return a string that will become the
-  // contents of a failed build file
-  if (typeof opts.writer !== 'function') {
-    opts.writer = function(err) {
-      var msg = JSON.stringify(err.toString());
-      return (
-        'var BROWSERIFY_ERROR = ' + msg + ';' +
-        '(typeof alert === \'function\' ? alert : console.error)(BROWSERIFY_ERROR);\n');
-    };
-  }
-
-  // Whether to re-emit errors
-  opts.silent = ('silent' in opts ? !!opts.silent : true);
-
-  var bundle = b.bundle.bind(b);
-  b.bundle = function(cb) {
-    var stream = through();
-    var eof = false;
-
-    bundle(function(err, src) {
-
-      // When there is an error, we are called twice.
-      if (eof) return;
-
-      if (err) {
-        opts.logger(err.toString());
-        src = opts.writer(err);
-        // If you emit an 'error', the pipeline ends there
-        b.emit('_error', err);
-        if (!opts.silent) {
-          b.emit('error', err);
-        }
-      }
-
-      if (cb) {
-        cb(null, src);
-      }
-
-      stream.push(src);
-      stream.push(null);
-
-      eof = true;
-    });
-
-    return stream;
-  };
+function replace(err) {
+  var message = String(err).replace(ansiRegex, '');
+  return '(typeof alert=="function"?alert:console.error)(' + JSON.stringify(message) + ');';
 }
 
-module.exports = errorify;
+module.exports = function errorify(b, opts) {
+  var bundle = b.bundle.bind(b);
+  b.bundle = function(cb) {
+    var output = through();
+    var pipeline = bundle(cb);
+    pipeline.on('error', function(err) {
+      console.error('errorify: %s', err);
+      output.push(replace(err));
+      output.push(null);
+      pipeline.unpipe(output);
+    });
+    pipeline.pipe(output);
+    return output;
+  };
+};
