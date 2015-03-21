@@ -1,6 +1,6 @@
 {
   "name": "errorify",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Browserify plugin to write failed build error messages to the output file",
   "keywords": [
     "build",
