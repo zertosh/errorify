@@ -19,7 +19,7 @@ test('errorify', function(t) {
 
   var errorify = require('../');
 
-  var ERROR_PRELUDE = 'pre.textContent = error.stack || error;';
+  var ERROR_PRELUDE = 'pre.textContent = error.message || error;';
 
   t.test('exports', function(t) {
     t.equal(typeof errorify, 'function', 'should export a function');

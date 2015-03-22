@@ -18,7 +18,8 @@ function template(error) {
   }
   function print() {
     var pre = document.createElement('pre');
-    pre.textContent = error.stack || error;
+    pre.className = 'errorify';
+    pre.textContent = error.message || error;
     if (document.body.firstChild) {
       document.body.insertBefore(pre, document.body.firstChild);
     } else {
@@ -30,8 +31,8 @@ function template(error) {
 function replace(err_) {
   var err = {};
   errorProps.forEach(function(key) {
-    if (err[key]) {
-      err[key] = String(err[key]).replace(ansiRegex, '');
+    if (err_[key]) {
+      err[key] = String(err_[key]).replace(ansiRegex, '');
     }
   });
   return '!' + template + '(' + JSON.stringify(err) + ')';
