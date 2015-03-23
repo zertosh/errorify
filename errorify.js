@@ -5,19 +5,9 @@ var through = require('through2');
 // https://github.com/sindresorhus/ansi-regex/blob/47fb974/index.js
 var ansiRegex = /(?:(?:\u001b\[)|\u009b)(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])|\u001b[A-M]/g;
 
-var errorProps = [
-  'stack', 
-  'annotated', 
-  'name', 
-  'message', 
-  'fileName', 
-  'lineNumber', 'line',
-  'columnNumber', 'column'
-];
-
 function template(error) {
   /*eslint-env browser*/
-  console.error(error.name, error);
+  console.error(error);
   if (typeof document === 'undefined') return;
   if (!document.body) {
     document.addEventListener('DOMContentLoaded', print);
@@ -27,7 +17,7 @@ function template(error) {
   function print() {
     var pre = document.createElement('pre');
     pre.className = 'errorify';
-    pre.textContent = error.annotated || error.message || error;
+    pre.textContent = error.message || error;
     if (document.body.firstChild) {
       document.body.insertBefore(pre, document.body.firstChild);
     } else {
@@ -37,16 +27,26 @@ function template(error) {
 }
 
 function replace(err) {
+  //normalize error properties
+  err = {
+    message: err.annotated || err.message,
+    lineNumber: typeof err.line === 'number' ? err.line : err.lineNumber,
+    columnNumber: typeof err.column === 'number' ? err.column : err.columnNumber,
+    name: err.name,
+    stack: err.stack,
+    fileName: err.fileName
+  };
+
   var result = {};
-  errorProps.forEach(function(key) {
+  Object.keys(err).forEach(function(key) {
     var val = err[key];
     if (typeof val !== 'undefined') {
-      if (typeof val === 'number')
-        result[key] = val;
-      else
-        result[key] = String(val).replace(ansiRegex, '');
+      result[key] = typeof val === 'number' 
+            ? val 
+            : String(val).replace(ansiRegex, '');
     }
-  });
+  })
+
   return '!' + template + '(' + JSON.stringify(result) + ')';
 }
 
