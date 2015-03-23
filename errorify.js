@@ -5,8 +5,6 @@ var through = require('through2');
 // https://github.com/sindresorhus/ansi-regex/blob/47fb974/index.js
 var ansiRegex = /(?:(?:\u001b\[)|\u009b)(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])|\u001b[A-M]/g;
 
-var errorProps = ['stack', 'name', 'message', 'fileName', 'lineNumber', 'columnNumber'];
-
 function template(error) {
   /*eslint-env browser*/
   console.error(error);
@@ -28,14 +26,28 @@ function template(error) {
   }
 }
 
-function replace(err_) {
-  var err = {};
-  errorProps.forEach(function(key) {
-    if (err_[key]) {
-      err[key] = String(err_[key]).replace(ansiRegex, '');
+function replace(err) {
+  //normalize error properties
+  err = {
+    message: err.annotated || err.message,
+    lineNumber: typeof err.line === 'number' ? err.line : err.lineNumber,
+    columnNumber: typeof err.column === 'number' ? err.column : err.columnNumber,
+    name: err.name,
+    stack: err.stack,
+    fileName: err.fileName
+  };
+
+  var result = {};
+  Object.keys(err).forEach(function(key) {
+    var val = err[key];
+    if (typeof val !== 'undefined') {
+      result[key] = typeof val === 'number' 
+            ? val 
+            : String(val).replace(ansiRegex, '');
     }
-  });
-  return '!' + template + '(' + JSON.stringify(err) + ')';
+  })
+
+  return '!' + template + '(' + JSON.stringify(result) + ')';
 }
 
 module.exports = function errorify(b, opts) {
