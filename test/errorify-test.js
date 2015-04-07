@@ -88,7 +88,7 @@ test('errorify', function(t) {
       }));
   });
 
-  test.only('error in transform', function(t) {
+  t.test('error in transform', function(t) {
     t.plan(1);
     var b = browserify('./test/fixtures/good/entry.js');
     b.transform(function() {
@@ -102,6 +102,31 @@ test('errorify', function(t) {
       .pipe(concat(function(src) {
         var hasError = contains(src, ERROR_PRELUDE);
         t.ok(hasError, 'should have error message when transform fails on entry');
+      }));
+  });
+
+  t.test('error in multiple transforms', function(t) {
+    t.plan(1);
+    var b = browserify('./test/fixtures/good/entry.js');
+    b.transform(function(file) {
+      var str = '';
+      return through(function(chunk, enc, cb) {
+        str += chunk;
+        cb();
+      }, function(cb) {
+        if (file.indexOf('good/entry.js') !== -1) {
+          this.push(str);
+        } else {
+          this.emit('error', new Error());
+        }
+        cb();
+      });
+    });
+    b.plugin(errorify);
+    b.bundle()
+      .pipe(concat(function(src) {
+        var hasError = contains(src, ERROR_PRELUDE);
+        t.ok(hasError, 'should have error message when multiple transforms fails');
       }));
   });
 
