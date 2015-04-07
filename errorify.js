@@ -41,11 +41,11 @@ function replace(err) {
   Object.keys(err).forEach(function(key) {
     var val = err[key];
     if (typeof val !== 'undefined') {
-      result[key] = typeof val === 'number' 
-            ? val 
+      result[key] = typeof val === 'number'
+            ? val
             : String(val).replace(ansiRegex, '');
     }
-  })
+  });
 
   return '!' + template + '(' + JSON.stringify(result) + ')';
 }
