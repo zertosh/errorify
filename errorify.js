@@ -55,15 +55,15 @@ module.exports = function errorify(b, opts) {
   b.bundle = function(cb) {
     var output = through();
     var pipeline = bundle(cb);
-    var errored;
-    pipeline.on('error', function(err) {
-      if (!errored) {
-        errored = true;
-        console.error('errorify: %s', err);
-        output.push(replace(err));
-        output.push(null);
-        pipeline.unpipe(output);
-      }
+    pipeline.once('error', function(err) {
+      console.error('errorify: %s', err);
+      output.push(replace(err));
+      output.push(null);
+      pipeline.unpipe(output);
+      pipeline.on('error', function(err2) {
+        // module-deps likes to emit each error
+        console.error('errorify: %s', err2);
+      });
     });
     pipeline.pipe(output);
     return output;
