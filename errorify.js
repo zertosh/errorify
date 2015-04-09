@@ -27,9 +27,16 @@ function template(error) {
 }
 
 function replace(err) {
+  var message;
+  if (err.codeFrame) { //babelify@6.x
+    message = [err.message, err.codeFrame].join('\n\n');
+  } else { //babelify@5.x and browserify
+    message = err.annotated || err.message;
+  }
+
   //normalize error properties
   err = {
-    message: err.annotated || err.message,
+    message: message,
     lineNumber: typeof err.line === 'number' ? err.line : err.lineNumber,
     columnNumber: typeof err.column === 'number' ? err.column : err.columnNumber,
     name: err.name,
