@@ -37,7 +37,7 @@ b.plugin(errorify);
 
 After installing `errorify` as a local devDependency, you can use the `--plugin` or `-p` option like so:
 
-```js
+```sh
 watchify index.js -o bundle.js -p errorify
 ```
 
@@ -45,7 +45,7 @@ watchify index.js -o bundle.js -p errorify
 
 The added `<pre>` tag has the class name `errorify`, so you can customize errors in your page like so:
 
-```
+```css
 body > .errorify {
   color: red;
   font-family: 'Consolas', monospace;
