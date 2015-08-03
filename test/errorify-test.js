@@ -2,7 +2,7 @@
 'use strict';
 
 var browserify = require('browserify');
-var test = require('tape');
+var test = require('tap').test;
 var through = require('through2');
 var vm = require('vm');
 
