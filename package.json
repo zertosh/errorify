@@ -8,7 +8,7 @@
     "browserify-plugin"
   ],
   "homepage": "https://github.com/zertosh/errorify",
-  "licence": "MIT",
+  "license": "MIT",
   "author": "Andres Suarez <zertosh@gmail.com>",
   "files": [
     "README.md",

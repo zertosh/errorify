@@ -55,4 +55,4 @@ body > .errorify {
 
 ## License
 
-MIT. See [LICENSE](LICENSE) for details.
+MIT.
