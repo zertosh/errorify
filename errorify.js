@@ -2,14 +2,37 @@
 
 var stream = require('stream');
 
-// https://github.com/sindresorhus/ansi-regex/blob/47fb974/index.js
-var ansiRegex = /(?:(?:\u001b\[)|\u009b)(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])|\u001b[A-M]/g;
+module.exports = function errorify(b, opts) {
+  var bundle = b.bundle;
+  var replacer = opts && opts.replacer || defaultReplacer;
+  b.bundle = function(cb) {
+    var output = new stream.Transform();
+    output._transform = function(chunk, enc, callback) {
+      callback(null, chunk);
+    };
+    var pipeline = bundle.call(b, cb);
+    pipeline.on('error', function(err) {
+      // module-deps likes to emit each error
+      console.error('errorify: %s', err);
+    });
+    pipeline.once('error', function(err) {
+      output.push(replacer(err));
+      output.push(null);
+      pipeline.unpipe(output);
+    });
+    pipeline.pipe(output);
+    return output;
+  };
+};
 
-function template(error) {
-  /*eslint-env browser*/
+// https://github.com/sindresorhus/ansi-regex/blob/11423e1/index.js
+var ansiRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
+
+var template = function(error) {
   console.error(error);
-  if (typeof document === 'undefined') return;
-  if (!document.body) {
+  if (typeof document === 'undefined') {
+    return;
+  } else if (!document.body) {
     document.addEventListener('DOMContentLoaded', print);
   } else {
     print();
@@ -24,57 +47,39 @@ function template(error) {
       document.body.appendChild(pre);
     }
   }
-}
+}.toString();
 
-function replace(err) {
-  var message;
-  if (err.codeFrame) { //babelify@6.x
-    message = [err.message, err.codeFrame].join('\n\n');
-  } else { //babelify@5.x and browserify
-    message = err.annotated || err.message;
-  }
-
-  //normalize error properties
-  err = {
-    message: message,
-    lineNumber: typeof err.line === 'number' ? err.line : err.lineNumber,
-    columnNumber: typeof err.column === 'number' ? err.column : err.columnNumber,
-    name: err.name,
-    stack: err.stack,
-    fileName: err.fileName
-  };
-
+function normalizeError(err) {
   var result = {};
-  Object.keys(err).forEach(function(key) {
-    var val = err[key];
-    if (typeof val !== 'undefined') {
-      result[key] = typeof val === 'number'
-            ? val
-            : String(val).replace(ansiRegex, '');
+  [
+    'message',
+    'line',
+    'lineNumber',
+    'column',
+    'columnNumber',
+    'name',
+    'stack',
+    'fileName'
+  ].forEach(function(key) {
+    var val;
+    if (key === 'message' && err.codeFrame) {
+      val = err.message + '\n\n' + err.codeFrame; //babelify@6.x
+    } else if (key === 'message') {
+      val = err.annotated || err.message; //babelify@5.x and browserify
+    } else {
+      val = err[key];
+    }
+
+    if (typeof val === 'number') {
+      result[key] = val;
+    } else if (typeof val !== 'undefined') {
+      result[key] = String(val).replace(ansiRegex, '');
     }
   });
 
-  return '!' + template + '(' + JSON.stringify(result) + ')';
+  return result;
 }
 
-module.exports = function errorify(b, opts) {
-  var bundle = b.bundle;
-  b.bundle = function(cb) {
-    var output = new stream.Transform();
-    output._transform = function(chunk, enc, callback) {
-      callback(null, chunk);
-    };
-    var pipeline = bundle.call(b, cb);
-    pipeline.on('error', function(err) {
-      // module-deps likes to emit each error
-      console.error('errorify: %s', err);
-    });
-    pipeline.once('error', function(err) {
-      output.push(replace(err));
-      output.push(null);
-      pipeline.unpipe(output);
-    });
-    pipeline.pipe(output);
-    return output;
-  };
-};
+function defaultReplacer(err) {
+  return '!' + template + '(' + normalizeError(err) + ')';
+}

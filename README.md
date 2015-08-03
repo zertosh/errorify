@@ -29,9 +29,13 @@ _Note: Only tested with Browserify 9+_
 ```js
 var browserify = require('browserify');
 var errorify = require('errorify');
-var b = browserify({ /* stuff */ });
-b.plugin(errorify);
+var b = browserify({ /*...*/ });
+b.plugin(errorify, /* errorify options */);
 ```
+
+#### Options
+
+* `replacer` _(optional)_ is a function that takes an error as its first argument, and returns a string that will be used as the output bundle.
 
 ### CLI
 

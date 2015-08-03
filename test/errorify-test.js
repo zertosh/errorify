@@ -138,5 +138,23 @@ test('errorify', function(t) {
     }));
   });
 
+  t.test('custom replacer', function(t) {
+    t.plan(2);
+    var b = browserify('./test/fixtures/bad-syntax-entry.js');
+    b.plugin(errorify, {
+      replacer: function(err) {
+        t.type(err, 'Error');
+        return 'custom text';
+      }
+    });
+    b.bundle().pipe(concat(function(src) {
+      t.match(
+        src.toString(),
+        /custom text/,
+        'should have used custom replacer'
+      );
+    }));
+  });
+
   t.end();
 });
