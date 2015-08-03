@@ -1,6 +1,6 @@
 'use strict';
 
-var through = require('through2');
+var stream = require('stream');
 
 // https://github.com/sindresorhus/ansi-regex/blob/47fb974/index.js
 var ansiRegex = /(?:(?:\u001b\[)|\u009b)(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])|\u001b[A-M]/g;
@@ -58,19 +58,21 @@ function replace(err) {
 }
 
 module.exports = function errorify(b, opts) {
-  var bundle = b.bundle.bind(b);
+  var bundle = b.bundle;
   b.bundle = function(cb) {
-    var output = through();
-    var pipeline = bundle(cb);
-    pipeline.once('error', function(err) {
+    var output = new stream.Transform();
+    output._transform = function(chunk, enc, callback) {
+      callback(null, chunk);
+    };
+    var pipeline = bundle.call(b, cb);
+    pipeline.on('error', function(err) {
+      // module-deps likes to emit each error
       console.error('errorify: %s', err);
+    });
+    pipeline.once('error', function(err) {
       output.push(replace(err));
       output.push(null);
       pipeline.unpipe(output);
-      pipeline.on('error', function(err2) {
-        // module-deps likes to emit each error
-        console.error('errorify: %s', err2);
-      });
     });
     pipeline.pipe(output);
     return output;

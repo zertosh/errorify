@@ -22,12 +22,10 @@
   "scripts": {
     "test": "tape test/**/*-test.js"
   },
-  "dependencies": {
-    "through2": "^0.6.3"
-  },
   "devDependencies": {
     "browserify": "^9.0.3",
     "concat-stream": "^1.4.7",
-    "tape": "^3.5.0"
+    "tape": "^3.5.0",
+    "through2": "^0.6.3"
   }
 }
