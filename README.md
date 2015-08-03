@@ -2,7 +2,9 @@
 
 A [browserify](https://github.com/substack/node-browserify) plugin that writes the error message of a failed build to the output file, rendering it in the browser.
 
-Example: 
+[![Build Status](https://travis-ci.org/zertosh/errorify.svg?branch=master&style=flat)](https://travis-ci.org/zertosh/errorify)
+
+## Example
 
 ```sh
 watchify index.js -o bundle.js -p errorify
