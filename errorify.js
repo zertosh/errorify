@@ -81,5 +81,5 @@ function normalizeError(err) {
 }
 
 function defaultReplacer(err) {
-  return '!' + template + '(' + normalizeError(err) + ')';
+  return '!' + template + '(' + JSON.stringify(normalizeError(err)) + ')';
 }

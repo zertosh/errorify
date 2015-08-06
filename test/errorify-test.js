@@ -156,5 +156,24 @@ test('errorify', function(t) {
     }));
   });
 
+  t.test('error object', function(t) {
+    t.plan(1);
+    var b = browserify('./test/fixtures/good/entry.js');
+    b.transform(function() {
+      return through(function(chunk, enc, cb) {
+        this.emit('error', new Error('custom text'));
+        cb();
+      });
+    });
+    b.plugin(errorify);
+    b.bundle().pipe(concat(function(src) {
+      t.match(
+        src.toString(),
+        /custom text/,
+        'should have error message'
+      );
+    }));
+  });
+
   t.end();
 });
