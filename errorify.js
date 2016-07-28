@@ -5,6 +5,8 @@ var stream = require('stream');
 module.exports = function errorify(b, opts) {
   var bundle = b.bundle;
   var replacer = opts && opts.replacer || defaultReplacer;
+  var errorHandler = opts && opts.onError || defaultErrorLogger;
+
   b.bundle = function(cb) {
     var output = new stream.Transform();
     output._transform = function(chunk, enc, callback) {
@@ -12,8 +14,7 @@ module.exports = function errorify(b, opts) {
     };
     var pipeline = bundle.call(b, cb);
     pipeline.on('error', function(err) {
-      // module-deps likes to emit each error
-      console.error('errorify: %s', err);
+      errorHandler(err);
     });
     pipeline.once('error', function(err) {
       output.push(replacer(err));
@@ -82,4 +83,9 @@ function normalizeError(err) {
 
 function defaultReplacer(err) {
   return '!' + template + '(' + JSON.stringify(normalizeError(err)) + ')';
+}
+
+function defaultErrorLogger(err) {
+  // module-deps likes to emit each error
+  console.error('errorify: %s', err);
 }

@@ -39,6 +39,17 @@ b.plugin(errorify, /* errorify options */);
 
 * `replacer` _(optional)_ is a function that takes an error as its first argument, and returns a string that will be used as the output bundle.
 
+* `onError` _(optional)_ is a function that takes an error as its first argument and is used to override the default handler which simply logs to `stderr`. This option is intended to be used for logging and notification purposes. Example:
+
+```js
+var colors = require('colors/safe');
+var notifier = require('node-notifier');
+var errorHandler = function(err) {
+  console.error(colors.red('Build broken. Error:'), err.message);
+  notifier.notify({ title: 'Browserify build error', message: err.message });
+b.plugin(errorify, { onError: errorHandler });
+```
+
 ### CLI
 
 After installing `errorify` as a local devDependency, you can use the `--plugin` or `-p` option like so:

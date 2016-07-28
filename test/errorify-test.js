@@ -2,6 +2,7 @@
 
 var browserify = require('browserify');
 var concat = require('concat-stream');
+var stdMocks = require('std-mocks');
 var test = require('tap').test;
 var through = require('through2');
 var vm = require('vm');
@@ -172,6 +173,32 @@ test('errorify', function(t) {
         /custom text/,
         'should have error message'
       );
+    }));
+  });
+
+  t.test('default error logger is called by default', function(t) {
+    t.plan(1);
+    stdMocks.use({ stdout: false, stderr: true }); // only mock stderr
+
+    var b = browserify('./test/fixtures/bad-syntax-entry.js');
+    b.plugin(errorify);
+    b.bundle().pipe(concat(function(src) {
+      stdMocks.restore();
+      var output = stdMocks.flush();
+      t.assert(output.stderr.length === 1); // stderr should have one output
+    }));
+  });
+
+  t.test('errorify calls user-provided handler', function(t) {
+    t.plan(1);
+    var b = browserify('./test/fixtures/bad-syntax-entry.js');
+
+    var isCalled = false;
+    var customLogger = function(err) { isCalled = true; }
+    b.plugin(errorify, { onError: customLogger });
+
+    b.bundle().pipe(concat(function(src) {
+      t.assert(isCalled);
     }));
   });
 
